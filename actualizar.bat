@@ -10,8 +10,9 @@ if %errorlevel% neq 0 (
 )
 
 :: Obtiene la última versión del tag
+set "last_tag="
 for /f "delims=" %%a in ('git describe --tags --abbrev^=0 2^>nul') do set "last_tag=%%a"
-if "%last_tag%"=="" (
+if "!last_tag!"=="" (
     set "last_tag=v1.0"
     echo No se encontraron tags existentes. Comenzando con !last_tag!
 ) else (
@@ -19,14 +20,19 @@ if "%last_tag%"=="" (
 )
 
 :: Extrae el número de versión y lo incrementa
-for /f "tokens=1,2 delims=." %%a in ("!last_tag!") do (
-    set "prefix=%%a"
-    set "major=%%b"
-    set /a "minor=%%c+1"
+if "!last_tag!"=="v1.0" (
+    set "new_tag=v1.1"
+) else (
+    for /f "tokens=1,2 delims=." %%a in ("!last_tag!") do (
+        set "prefix=%%a"
+        set "major=%%b"
+    )
+    for /f "tokens=3 delims=." %%c in ("!last_tag!") do (
+        set /a "minor=%%c+1"
+    )
+    set "new_tag=!prefix!.!major!.!minor!"
 )
 
-:: Crea el nuevo tag
-set "new_tag=!prefix!.!major!.!minor!"
 echo Nuevo tag: !new_tag!
 
 :: Actualiza el repositorio
